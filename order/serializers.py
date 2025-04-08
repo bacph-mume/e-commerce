@@ -1,25 +1,7 @@
-from pydoc import classname
+
 from rest_framework import serializers
-from .models import Product, Order, OrderItem, User
+from .models import Order, OrderItem
 from django.db import transaction
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        # exclude = ("password", "user_permissions")
-        fields = ["username", "email", "first_name", "last_name", 'orders']
-
-
-class ProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Product
-        fields = ("id", "name", "description", "price", "stock")
-
-    def validate_price(self, value):
-        if (value <= 0):
-            raise serializers.ValidationError("Price must be greater than 0")
-        return value
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -80,10 +62,3 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = ("order_id", "created_at", "user",
                   "status", "items", "total_price")
-
-
-class ProductInfoSerializer(serializers.Serializer):
-    # products, count of products, max_price
-    products = ProductSerializer(many=True)
-    count = serializers.IntegerField()
-    max_price = serializers.FloatField()

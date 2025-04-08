@@ -1,0 +1,7 @@
+Django>=4.2
+djangorestframework
+djangorestframework-simplejwt
+drf_spectacular
+django-filter
+django-redis
+Pillow
