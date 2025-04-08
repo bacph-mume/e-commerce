@@ -1,3 +1,6 @@
+import django
+import django.core
+import django.core.cache
 from django.db.models import Max
 from api.filters import InStockFilterBackend, OrderFilter, ProductFilter
 from api.models import Order, Product, User
@@ -12,6 +15,7 @@ from rest_framework.decorators import action
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers
+from django.core.cache import cache
 
 # Create your views here.
 
@@ -65,13 +69,16 @@ class OrderViewSet(viewsets.ModelViewSet):
     filterset_class = OrderFilter
     filter_backends = [DjangoFilterBackend]
 
-    # Cache for 15 minutes
-    @method_decorator(cache_page(60 * 15, key_prefix="order_list"))
-    @method_decorator(vary_on_headers("Authorization"))
     def list(self, request, *args, **kwargs):
-        import time
-        time.sleep(2)
-        return super().list(request, *args, **kwargs)
+
+        cache_key = f"order_list_{request.user.id}"
+        data = cache.get(cache_key)
+        if data:
+            return Response(data)
+
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, timeout=60 * 15)
+        return response
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
